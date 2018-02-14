@@ -2,9 +2,9 @@
 import React, { Component } from 'react';
 import {calculateWinner} from './gameWinCalc';
 
-function Square({row,col,value,handleClick}) {
+function Square({idTag ,value,handleClick}) {
   return (
-    <button className="square" data-row={row} data-col={col} onClick={handleClick} >
+    <button className="square" data-tag={idTag} onClick={handleClick} >
     {value}
     </button>
   );
@@ -20,8 +20,7 @@ class Board extends Component {
   renderSquare(value, rowNum, colNum) {
     return ( <Square value={value} 
       handleClick={this.props.clickFunc} 
-      row={rowNum} 
-      col={colNum} 
+      idTag={'r'.concat(rowNum,'c',colNum)}
       key={'r'.concat(rowNum,'c',colNum)}/> 
     );
   }
@@ -64,7 +63,14 @@ class Game extends Component {
     this.setState({winner: calculateWinner(this.state.squares)}, () => {
       if (this.state.winner) { 
         this.endGame(); 
-        document.querySelector('.game-board').classList.add('rotate-center');
+        this.state.winner.where.forEach( rcArr => {
+          const r = rcArr[0];
+          const c = rcArr[1];
+          const winningComboSquare = document.querySelector('[data-tag=r' + r + 'c' + c + ']');
+          winningComboSquare.classList.add('winningSquare');
+        });
+        
+        document.querySelector('.game-board').classList.add('rotate-center'); // bad practice, but works for this purpose.
       }
       if (this.state.moveCount === 9){ this.endGame(); }
     });
@@ -89,14 +95,15 @@ class Game extends Component {
       gameOver: false,
       moveCount: 0
     });
-    document.querySelector('.game-board').classList.remove('rotate-center');
+    document.querySelector('.game-board').classList.remove('rotate-center'); // Not sure if necessary
+    document.querySelectorAll('.square').forEach( sq => sq.classList.remove('winningSquare'));
   }
 
   handleClick(e) {
     if (this.state.gameOver){ return; }
     const sqArr = this.state.squares;
-    const r = Number(e.target.dataset.row);
-    const c = Number(e.target.dataset.col);
+    const r = Number(e.target.dataset.tag[1]);
+    const c = Number(e.target.dataset.tag[3]);
     if (sqArr[r][c]) { return; }
     this.setCelVal(r,c);
   }
